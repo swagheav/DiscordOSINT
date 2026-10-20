@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOID//DISCORD — Discord OSINT Directory</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;--panel:#0a0a0a;--card:#0f0f0f;
+  --border:#1a1a1a;--border2:#242424;
+  --red:#b91c1c;--red2:#ef4444;--red3:#fca5a5;
+  --text:#888;--bright:#ccc;--white:#eee;--muted:#333;
+  --fh:'Bebas Neue',sans-serif;--fm:'Share Tech Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fm);min-height:100vh;overflow-x:hidden;cursor:crosshair;}
+
+/* scanlines */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.18) 2px,rgba(0,0,0,.18) 4px);}
+/* grain */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");}
+
+.wrap{max-width:1000px;margin:0 auto;padding:24px 16px 60px;position:relative;z-index:2;}
+
+/* header */
+header{border-bottom:3px solid var(--red);padding-bottom:16px;margin-bottom:22px;position:relative;overflow:hidden;}
+header::before{content:'DISCORD';position:absolute;font-family:var(--fh);font-size:clamp(5rem,14vw,11rem);
+  color:rgba(185,28,28,.04);top:50%;left:-10px;transform:translateY(-50%);letter-spacing:-6px;pointer-events:none;white-space:nowrap;}
+.title{font-family:var(--fh);font-size:clamp(2.6rem,9vw,6rem);line-height:.9;letter-spacing:4px;color:var(--white);position:relative;}
+.title .slash{color:var(--red);}
+.sub{font-size:9px;letter-spacing:6px;color:var(--muted);text-transform:uppercase;margin-top:10px;position:relative;}
+
+/* search */
+.search-row{display:flex;gap:8px;margin:20px 0 22px;}
+.search-inp{flex:1;background:#050505;border:1px solid var(--border);border-bottom:2px solid var(--red);
+  padding:11px 14px;color:var(--white);font-family:var(--fm);font-size:12px;outline:none;transition:border-color .2s;}
+.search-inp:focus{border-bottom-color:var(--red2);box-shadow:0 2px 14px rgba(185,28,28,.15);}
+.search-inp::placeholder{color:var(--muted);letter-spacing:1px;}
+
+/* category */
+.cat{margin-bottom:22px;}
+.cat-head{display:flex;align-items:center;gap:10px;font-family:var(--fh);font-size:1.6rem;letter-spacing:3px;
+  color:var(--bright);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.cat-head .ic{font-size:1.3rem;}
+.cat-head .n{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:2px;margin-left:auto;}
+
+/* tool card */
+.tool{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);
+  border-left:3px solid var(--red);padding:12px 14px;margin-bottom:6px;text-decoration:none;
+  color:var(--text);transition:all .18s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden;}
+.tool::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(185,28,28,.08),transparent);
+  opacity:0;transition:opacity .2s;pointer-events:none;}
+.tool:hover{border-left-color:var(--red2);background:#130808;transform:translateX(4px);}
+.tool:hover::before{opacity:1;}
+.tool-body{flex:1;min-width:0;}
+.tool-name{font-family:var(--fm);font-size:12px;color:var(--white);letter-spacing:.5px;margin-bottom:3px;font-weight:700;}
+.tool-desc{font-family:var(--fm);font-size:9px;color:#555;line-height:1.6;letter-spacing:.3px;}
+.tool-tag{font-family:var(--fm);font-size:7px;letter-spacing:1px;padding:2px 7px;border:1px solid var(--border2);
+  color:#444;flex-shrink:0;white-space:nowrap;}
+.tool-tag.free{color:#28c840;border-color:rgba(40,200,64,.3);}
+.tool-tag.paid{color:#ffaa00;border-color:rgba(255,170,0,.3);}
+.tool-tag.freemium{color:#0088ff;border-color:rgba(0,136,255,.3);}
+.tool-tag.dir{color:#b91c1c;border-color:rgba(185,28,28,.3);}
+.tool-arrow{font-size:16px;color:#333;flex-shrink:0;transition:color .2s,transform .2s;}
+.tool:hover .tool-arrow{color:var(--red2);transform:translateX(3px);}
+
+/* footer */
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--border);text-align:center;
+  font-size:9px;letter-spacing:4px;color:var(--muted);}
+footer b{color:var(--red2);font-weight:normal;}
+footer a{color:var(--red2);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+
+/* empty */
+.empty{text-align:center;padding:40px 20px;font-size:10px;letter-spacing:3px;color:var(--muted);}
+
+/* warn */
+.warn{background:rgba(185,28,28,.04);border:1px solid rgba(185,28,28,.18);border-left:3px solid var(--red);
+  padding:12px 16px;margin-bottom:20px;font-size:9px;color:#cc8080;line-height:1.8;letter-spacing:.4px;}
+.warn strong{color:var(--red2);}
+
+@media(max-width:600px){
+  .tool{flex-wrap:wrap;}
+  .tool-tag{margin-left:auto;}
+  .tool-arrow{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="title">VOID<span class="slash">//</span>DISCORD</div>
+  <div class="sub">DISCORD OSINT · PUBLIC LOOKUP DIRECTORY · LINK-OUT ONLY</div>
+</header>
+
+<div class="warn">
+  <strong>⚠ PASSIVE ONLY.</strong> Every entry here is a link to a public third-party tool. Nothing in this page authenticates, scrapes, or sends requests on your behalf. Some tools below are paid/freemium services — verify before using.
+</div>
+
+<div class="search-row">
+  <input id="search" class="search-inp" placeholder="🔎 Filter tools..." oninput="filter()" />
+</div>
+
+<div id="tree"></div>
+
+<footer>
+  VOID<b>//</b>DISCORD · PUBLIC OSINT DIRECTORY ·
+  <a href="https://t.me/SWGHEV" target="_blank" rel="noopener">t.me/SWGHEV</a>
+</footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   DISCORD OSINT — PUBLIC LOOKUP DIRECTORY
+   Each entry: name, url, description, tag
+   Tag: free / paid / freemium / dir
+   Nothing here sends requests — all entries are
+   public websites that you open manually.
+═══════════════════════════════════════════════════ */
+var DATA = [
+  {
+    cat: 'DISCORD ID RESOLVERS',
+    icon: '🆔',
+    tools: [
+      { name:'Cort.Cat', url:'https://cort.cat/', desc:'Discord ID resolver — public profile lookup, account age, mutual servers where public.', tag:'freemium' },
+      { name:'DiscordResolver99', url:'https://discordresolver99.com/', desc:'Discord ID / username reverse lookup. Public profile data, server discovery.', tag:'freemium' },
+      { name:'SeekNow', url:'https://seeknow.io/', desc:'Discord ID and username OSINT. Surfaces public profile metadata, avatar history, linked accounts.', tag:'freemium' },
+      { name:'Discord ID Lookup', url:'https://discord.id/', desc:'Discord profile lookup — "About Me", badges, creation date, banner, avatar.', tag:'free' },
+      { name:'Discord Lookup', url:'https://discordlookup.com/', desc:'Quick Discord ID → account created / join date / badge / avatar info.', tag:'free' },
+      { name:'Discord.Name', url:'https://discord.name/', desc:'Discord ID lookup with auto-formatting of profile data, badges, and account age.', tag:'free' },
+      { name:'Discord Snowflake Lookup', url:'https://discordlookup.com/user', desc:'Resolves a Discord snowflake ID to timestamp + server/user info.', tag:'free' },
+    ]
+  },
+  {
+    cat: 'USERNAME / ACCOUNT SEARCH',
+    icon: '👤',
+    tools: [
+      { name:'WhatsMyName', url:'https://whatsmyname.app/', desc:'Search a username across 600+ platforms, including Discord.', tag:'free' },
+      { name:'Sherlock (hosted)', url:'https://sherlock-project.github.io/', desc:'Cross-platform username search — GitHub-hosted web version.', tag:'free' },
+      { name:'Namechk', url:'https://namechk.com/', desc:'Check username availability/presence across platforms including Discord.', tag:'free' },
+      { name:'Instant Username', url:'https://instantusername.com/', desc:'Real-time username presence check across dozens of platforms.', tag:'free' },
+      { name:'Blackbird', url:'https://blackbird-osec.com/', desc:'Hosted cross-platform username/email search (600+ sites).', tag:'freemium' },
+    ]
+  },
+  {
+    cat: 'SERVER / GUILD DISCOVERY',
+    icon: '🏠',
+    tools: [
+      { name:'Disboard', url:'https://disboard.org/', desc:'Public Discord server directory — search by tag, name, language.', tag:'free' },
+      { name:'Top.gg', url:'https://top.gg/', desc:'Bots + server listings; search servers by category.', tag:'free' },
+      { name:'Discord.me', url:'https://discord.me/', desc:'Public server directory, sorted by category and popularity.', tag:'free' },
+      { name:'Discord Server List', url:'https://discordsevers.com/', desc:'Public community list — searchable, sortable by size.', tag:'free' },
+      { name:'DiscordHub', url:'https://discordhub.com/', desc:'Server listing + tags. Useful for finding communities around a niche.', tag:'free' },
+      { name:'Discadia', url:'https://discadia.com/', desc:'Large public Discord server index — search by keyword.', tag:'free' },
+      { name:'DiscordServers.info', url:'https://discordservers.info/', desc:'Community-run directory — sorted by category and language.', tag:'free' },
+    ]
+  },
+  {
+    cat: 'INVITE / LINK TOOLS',
+    icon: '🔗',
+    tools: [
+      { name:'Discord Invite Resolver', url:'https://discord.com/invite/', desc:'Resolve an invite code by appending to the URL (public + non-expired only).', tag:'dir' },
+      { name:'Discord Invite Lookup', url:'https://discordlookup.com/invite', desc:'Check invite code state — server name, icon, size (public invites only).', tag:'free' },
+      { name:'Disboard Invite Check', url:'https://disboard.org/search', desc:'Search invite code / server name in the public Disboard index.', tag:'free' },
+      { name:'Invite Logger (Bots)', url:'https://top.gg/search?q=invite%20logger', desc:'Search top.gg for invite-logger bots — server-side tracking only.', tag:'dir' },
+    ]
+  },
+  {
+    cat: 'AVATAR / BANNER OSINT',
+    icon: '🖼️',
+    tools: [
+      { name:'Discord Avatar Viewer', url:'https://discord.id/', desc:'Full-resolution avatar and banner extraction from any public profile.', tag:'free' },
+      { name:'Discord CDN', url:'https://cdn.discordapp.com/', desc:'Direct CDN — avatars, banners, emojis, attachments (public assets only).', tag:'dir' },
+      { name:'TinEye', url:'https://tineye.com/', desc:'Reverse image search — find where an avatar has been posted before.', tag:'free' },
+      { name:'Yandex Images', url:'https://yandex.com/images/', desc:'Best reverse image engine for faces and reused avatars.', tag:'free' },
+      { name:'Google Lens', url:'https://lens.google.com/', desc:'Reverse image + OCR + visual location match.', tag:'free' },
+      { name:'PimEyes', url:'https://pimeyes.com/', desc:'Facial recognition search on avatar photos (paid).', tag:'paid' },
+    ]
+  },
+  {
+    cat: 'BREACH / LEAK CHECK',
+    icon: '🚨',
+    tools: [
+      { name:'Have I Been Pwned', url:'https://haveibeenpwned.com/', desc:'Check whether an email linked to a Discord account appears in known breaches.', tag:'free' },
+      { name:'LeakCheck', url:'https://leakcheck.io/', desc:'Search leaked credentials — email, username, phone.', tag:'paid' },
+      { name:'DeHashed', url:'https://www.dehashed.com/', desc:'Deep breach search — supports email, username, IP, phone.', tag:'paid' },
+      { name:'IntelX', url:'https://intelx.io/', desc:'Search leaked docs, pastes, dark web for a username/email.', tag:'freemium' },
+      { name:'GhostProject', url:'https://ghostproject.fr/', desc:'Free leak checker — supports partial searches.', tag:'free' },
+      { name:'Snusbase', url:'https://snusbase.com/', desc:'Credential database — fastest for username/email lookups.', tag:'paid' },
+    ]
+  },
+  {
+    cat: 'ARCHIVE / HISTORY',
+    icon: '⏪',
+    tools: [
+      { name:'Wayback Machine', url:'https://web.archive.org/', desc:'Find archived versions of a Discord server\'s public landing page or widgets.', tag:'free' },
+      { name:'Discord Widget Archive', url:'https://web.archive.org/web/*/discord.com/widget*', desc:'Archived Discord widget pages — server name + member count snapshots.', tag:'dir' },
+      { name:'Archive.today', url:'https://archive.ph/', desc:'On-demand archiving for Discord invite pages and server sites.', tag:'free' },
+      { name:'CachedView', url:'https://cachedview.nl/', desc:'Check cached versions of Discord public pages.', tag:'free' },
+    ]
+  },
+  {
+    cat: 'TOKEN / API (PASSIVE)',
+    icon: '🔑',
+    tools: [
+      { name:'Discord Developer Portal', url:'https://discord.com/developers/applications', desc:'Official portal — your own app/bot tokens, OAuth2, webhooks.', tag:'dir' },
+      { name:'Discord API Docs', url:'https://discord.com/developers/docs/intro', desc:'Official REST + Gateway documentation for building compliant tooling.', tag:'dir' },
+      { name:'Discord Status', url:'https://discordstatus.com/', desc:'Outage / incident history — cross-check "account missing" vs platform outage.', tag:'dir' },
+    ]
+  },
+  {
+    cat: 'COMMUNITY TOOLKITS',
+    icon: '🧰',
+    tools: [
+      { name:'OSINT Framework', url:'https://osintframework.com/', desc:'Curated directory of OSINT tools including Discord-adjacent resources.', tag:'free' },
+      { name:'Bellingcat Toolkit', url:'https://bellingcat.gitbook.io/toolkit', desc:'Journalist-grade OSINT toolkit — social, image, and platform tools.', tag:'free' },
+      { name:'IntelTechniques', url:'https://inteltechniques.com/tools/', desc:'Michael Bazzell\'s legendary OSINT tool index.', tag:'free' },
+      { name:'Awesome OSINT (GitHub)', url:'https://github.com/jivoi/awesome-osint', desc:'Huge curated GitHub list of OSINT tools.', tag:'dir' },
+      { name:'Awesome Discord (GitHub)', url:'https://github.com/mhxion/awesome-discord-communities', desc:'Curated Discord community list — useful for server discovery.', tag:'dir' },
+    ]
+  },
+];
+
+var openSet = {};
+
+function render(filterText){
+  var f = (filterText || '').toLowerCase().trim();
+  var html = '';
+  var totalShown = 0;
+
+  DATA.forEach(function(group, gi) {
+    var tools = group.tools;
+    if (f) {
+      tools = tools.filter(function(t) {
+        return t.name.toLowerCase().includes(f) ||
+               t.desc.toLowerCase().includes(f) ||
+               group.cat.toLowerCase().includes(f);
+      });
+      if (!tools.length) return;
+    }
+    totalShown += tools.length;
+
+    var isOpen = f ? true : !!openSet[gi];
+    html += '<div class="cat">'
+      + '<div class="cat-head" onclick="toggle(' + gi + ')">'
+      + '<span class="ic">' + group.icon + '</span>'
+      + '<span>' + group.cat + '</span>'
+      + '<span class="n">' + tools.length + ' TOOL' + (tools.length>1?'S':'') + '</span>'
+      + '</div>';
+
+    if (isOpen) {
+      tools.forEach(function(t) {
+        var tagClass = t.tag === 'free' ? 'free'
+                     : t.tag === 'paid' ? 'paid'
+                     : t.tag === 'freemium' ? 'freemium'
+                     : 'dir';
+        html += '<a class="tool" href="' + t.url + '" target="_blank" rel="noopener noreferrer">'
+          + '<div class="tool-body">'
+          + '<div class="tool-name">' + escHtml(t.name) + '</div>'
+          + '<div class="tool-desc">' + escHtml(t.desc) + '</div>'
+          + '</div>'
+          + '<span class="tool-tag ' + tagClass + '">' + t.tag.toUpperCase() + '</span>'
+          + '<span class="tool-arrow">→</span>'
+          + '</a>';
+      });
+    }
+    html += '</div>';
+  });
+
+  if (!html) {
+    html = '<div class="empty">NO MATCHES FOR "' + escHtml(filterText) + '"</div>';
+  }
+
+  document.getElementById('tree').innerHTML = html;
+}
+
+function toggle(gi) {
+  openSet[gi] = !openSet[gi];
+  render(document.getElementById('search').value);
+}
+
+function filter() {
+  render(document.getElementById('search').value);
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* Default: expand first 3 categories */
+openSet[0] = openSet[1] = openSet[2] = true;
+render('');
+</script>
+</body>
+</html>
